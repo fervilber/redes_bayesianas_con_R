@@ -1,0 +1,838 @@
+---
+title: "knn"
+author: "Fernando Villalba Bergado"
+date: "3 de septiembre de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R analisis supervisado
+
+
+##Reconociendo una señal de tráfico con kNN
+Después de varios viajes con un humano detrás del volante, es hora de que el auto que conduce solo intente el recorrido de prueba solo.
+
+Cuando comienza a alejarse, su cámara captura la siguiente imagen:
+
+Señal de stop
+
+¿Puedes aplicar un clasificador kNN para ayudar al auto a reconocer este signo?
+
+INSTRUCCIONES
+100 XP
+Los signos del conjunto de datos se cargan en su espacio de trabajo junto con el marco de datos next_sign, que contiene la observación que desea clasificar.
+
+Cargue el paquete de clase.
+Cree un vector de etiquetas de letreros para usar con kNN extrayendo la columna sign_type de los letreros.
+Identifica el next_sign usando la función knn ().
+Establezca el argumento de tren igual al marco de datos de signos sin la primera columna.
+Establezca el argumento de prueba igual al marco de datos next_sign.
+Usa el vector de etiquetas que creaste como el argumento cl.
+
+```{r}
+# Load the 'class' package
+library(class)
+
+# Create a vector of labels
+sign_types <- signs$sign_type
+
+# Classify the next sign observed
+#signs[-1] quita la primera columna
+knn(train = signs[-1], test = next_sign, cl = sign_types)
+```
+## Explorando el conjunto de datos de señales de tráfico
+Para comprender mejor cómo la función knn () pudo clasificar el signo de alto, puede ser útil examinar el conjunto de datos de entrenamiento que utilizó.
+
+Cada signo de calle observado previamente se dividió en una cuadrícula de 4x4, y el nivel rojo, verde y azul para cada uno de los 16 píxeles centrales se registra como se ilustra aquí.
+
+Detener la codificación de datos de signos
+
+El resultado es un conjunto de datos que registra el tipo de signo así como 16 x 3 = 48 propiedades de color de cada signo.
+
+INSTRUCCIONES
+100 XP
+Use la función str () para examinar el conjunto de datos de signos.
+Use la tabla () para contar el número de observaciones de cada tipo de signo pasándolo por la columna que contiene las etiquetas.
+Ejecute el comando agregado agregado () para ver si el nivel rojo promedio puede variar según el tipo de signo.
+```{r}
+# Examine the structure of the signs dataset
+str(signs)
+
+# Count the number of signs of each type
+table(signs$sign_type)
+
+# Check r10's average red level by sign type
+aggregate(r10 ~ sign_type, data = signs, mean)
+```
+
+## Clasificando una colección de señales de tráfico
+Ahora que el vehículo autónomo se ha detenido con éxito por sí solo, su equipo se siente seguro al permitir que el automóvil continúe el recorrido de prueba.
+
+El curso de prueba incluye 59 señales de tráfico adicionales divididas en tres tipos:
+
+Señal de límite de velocidad de señal Señal de peatón de señal
+
+Al finalizar la prueba, se le pedirá que mida el rendimiento general del automóvil al reconocer estos signos.
+
+INSTRUCCIONES
+100 XP
+El paquete de clase y los letreros del conjunto de datos ya están cargados en su espacio de trabajo. También lo es el marco de datos test_signs, que contiene un conjunto de observaciones en las que probará su modelo.
+
+Clasifica los datos test_signs usando knn ().
+Establecer tren igual a las observaciones en signos sin etiquetas.
+Use test_signs para el argumento de la prueba, nuevamente sin etiquetas.
+Para el argumento cl, usa el vector de etiquetas provisto para ti.
+Use la tabla () para explorar el rendimiento del clasificador al identificar los tres tipos de signos.
+Crea el vector signs_actual extrayendo las etiquetas de test_signs.
+Pase el vector de predicciones y el vector de signos reales a la tabla () para cruzar tabularlos.
+Calcule la precisión general del alumno kNN utilizando la función mean ().
+```{r}
+# Use kNN to identify the test road signs
+sign_types <- signs$sign_type
+signs_pred <- knn(train =signs[-1], test =test_signs[-1], cl =sign_types)
+
+# Create a confusion matrix of the actual versus predicted values
+signs_actual <- test_signs$sign_type
+table(signs_pred, signs_actual)
+
+# Compute the accuracy
+mean(signs_pred == signs_actual)
+```
+
+## k near neighbors
+EJERCICIO
+EJERCICIO
+Probando otros valores 'k'
+Por defecto, la función knn () en el paquete de clase usa solo el vecino más cercano.
+
+Establecer un parámetro k permite que el algoritmo considere vecinos cercanos adicionales. Esto amplía la colección de vecinos que votarán en la clase predicha.
+
+Compare los valores k de 1, 7 y 15 para examinar el impacto en la precisión de la clasificación de señales de tráfico.
+
+INSTRUCCIONES
+100 XP
+El paquete de clase ya está cargado en su espacio de trabajo junto con los signos de conjunto de datos y signos_prueba. El objeto signs_actual contiene los verdaderos valores de los signos.
+
+Calcule la precisión del modelo predeterminado k = 1 usando el código dado.
+Modifique la llamada a la función knn () configurando k = 7.
+Revise el código una vez más configurando k = 15 y compare los tres valores de precisión.
+
+```{r}
+# Compute the accuracy of the baseline model (default k = 1)
+k_1 <- knn(train = signs[-1], test = signs_test[-1], cl = signs$sign_type)
+mean(k_1 == signs_actual)
+
+# Modify the above to set k = 7
+k_7 <- knn(train = signs[-1], test = signs_test[-1], cl = signs$sign_type, k = 7)
+mean(k_7 == signs_actual)
+
+# Set k = 15 and compare to the above
+k_15 <- knn(train = signs[-1], test = signs_test[-1], cl = signs$sign_type, k = 15)
+mean(k_15 == signs_actual)
+```
+
+# Probabilidades de cálculo
+El marco de datos `where9am` contiene 91 días (trece semanas) de datos en los que Brett registró su ubicación a las 9 a.m. todos los días, así como si el tipo de día era un fin de semana o un día laborable.
+
+Usando la fórmula de probabilidad condicional a continuación, puede calcular la probabilidad de que Brett esté trabajando en la oficina, dado que es un día laborable.
+
+P (A | B) = P (A y B) P (B)
+
+Cálculos como estos son la base del modelo de predicción de destino de `Naive Bayes` que desarrollará en ejercicios posteriores.
+
+INSTRUCCIONES
+100 XP
+Encuentre P (oficina) usando nrow () y subconjunto () para contar filas en el conjunto de datos y guarde el resultado como p_A.
+Encuentre P (día laborable), usando nrow () y subconjunto () nuevamente, y guarde el resultado como p_B.
+Use nrow () y subconjunto () un tiempo final para encontrar P (oficina y día de la semana). Guarde el resultado como p_AB.
+Compute P (office | weekday) y guarde el resultado como p_A_given_B.
+Imprime el valor de p_A_given_B.
+
+
+where9am
+head(where9am)
+    daytype location
+10  weekday   office
+34  weekday   office
+58  weekday   office
+82  weekend     home
+106 weekend     home
+130 weekday   campus
+```{r}
+# Compute P(A) 
+p_A <- nrow(subset(where9am, location=="office",select=location))/ nrow(where9am)
+
+# Compute P(B)
+p_B <- nrow(subset(where9am, daytype=="weekday",select=daytype))/ nrow(where9am)
+
+# Compute the observed P(A and B)
+p_AB <- nrow(subset(subset(where9am, daytype=="weekday"),location=="office"))/ nrow(where9am)
+
+# Compute P(A | B)
+p_A_given_B <- p_AB/p_B
+p_A_given_B
+```
+
+```{r}
+#esta es la solucion del monitor del curso
+# Compute P(A) 
+p_A <- nrow(subset(where9am, location == "office")) / 91
+
+# Compute P(B)
+p_B <- nrow(subset(where9am, daytype == "weekday")) / 91
+
+# Compute the observed P(A and B)
+p_AB <- nrow(subset(where9am, where9am$location == "office" & where9am$daytype == "weekday")) / 91
+
+# Compute P(A | B)
+p_A_given_B <- p_AB / p_B
+p_A_given_B
+```
+
+## Un simple modelo de ubicación de Naive Bayes
+Los ejercicios anteriores mostraron que la probabilidad de que Brett esté en el trabajo o en casa a las 9 a.m. depende en gran medida de si es un fin de semana o un día de la semana.
+
+Para ver este hallazgo en acción, utilice el marco de datos where9am para construir un modelo de Naive Bayes en los mismos datos.
+
+A continuación, puede utilizar este modelo para predecir el futuro: ¿dónde cree el modelo que Brett estará a las 9 a.m. el jueves ya las 9 a.m. del sábado?
+
+INSTRUCCIONES
+100 XP
+El marco de datos donde 9am está disponible en su espacio de trabajo. Este conjunto de datos contiene información sobre la ubicación de Brett a las 9 a.m. en días diferentes.
+
+Cargue el paquete naivebayes.
+Use naive_bayes () con una fórmula como y ~ x para construir un modelo de ubicación como una función del tipo de día.
+Pronostique la ubicación del jueves a las 9 a.m. utilizando predecir () con el objeto jueves jueves9 como el argumento de datos nuevos.
+Haz lo mismo para predecir la ubicación del sábado9.
+
+
+```{r}
+# Load the naivebayes package
+library(naivebayes)
+
+# Build the location prediction model
+locmodel <- naive_bayes(location ~ daytype, data = where9am)
+thursday9am<-data.frame(daytype="weekday")
+# Predict Thursday's 9am location
+predict(locmodel,thursday9am)
+
+# Predict Saturdays's 9am location
+
+saturday9am<-data.frame(daytype="weekend")
+
+predict(locmodel,saturday9am)
+```
+
+## Examinando probabilidades "crudas"
+El paquete `naivebayes` ofrece varias maneras de mirar dentro de un modelo de Naive Bayes.
+
+Escribir el nombre del objeto modelo proporciona las probabilidades a priori (globales) y condicionales de cada uno de los predictores del modelo. Si uno estuviera tan inclinado, podría usar estos para calcular probabilidades posteriores (predichas) a mano.
+
+Alternativamente, R calculará las probabilidades posteriores para usted si el parámetro type = "prob" se suministra a la función de predicción ().
+
+Usando estos métodos, examine cómo la probabilidad de ubicación de las 9am del modelo varía de día a día.
+
+INSTRUCCIONES
+100 XP
+ El modelo de modelo locmodel que usted ajustó en el ejercicio anterior está en su espacio de trabajo.
+
+ Imprima el objeto locmodel en la consola para ver las probabilidades calculadas a priori y condicionales.
+ Use la función de predicción () de manera similar al ejercicio anterior, pero con type = "prob" para ver las probabilidades pronosticadas para el jueves a las 9 a. M.
+
+ Compare esto con las probabilidades pronosticadas para el sábado a las 9 a. M.
+ 
+ 
+```{r}
+# The 'naivebayes' package is loaded into the workspace
+# and the Naive Bayes 'locmodel' has been built
+
+# Examine the location prediction model
+locmodel
+
+# Obtain the predicted probabilities for Thursday at 9am
+predict(locmodel,thursday9am,type = "prob")
+
+# Obtain the predicted probabilities for Saturday at 9am
+predict(locmodel,saturday9am,type = "prob")
+```
+
+## Un modelo de ubicación más sofisticado
+El conjunto de datos de ubicaciones registra la ubicación de Brett cada hora durante 13 semanas. Cada hora, la información de seguimiento incluye el tipo de día (fin de semana o día de la semana), así como el hourtype (mañana, tarde, noche o noche).
+
+Usando estos datos, construya un modelo más sofisticado para ver cómo la ubicación pronosticada de Brett no solo varía por el día de la semana sino también por la hora del día.
+
+INSTRUCCIONES
+100 XP
+Las ubicaciones del conjunto de datos ya están cargadas en su espacio de trabajo.
+
+Use la interfaz de la fórmula R para construir un modelo donde la ubicación dependa tanto del tipo de día como del tipo de hourtype. Recuerde que la función naive_bayes () toma 2 argumentos: fórmula y datos.
+Predecir la ubicación de Brett en una tarde de lunes a viernes usando el dataframe weekday_afternoon y la función de predicción ().
+Haz lo mismo para un week_evening.
+```{r}
+# The 'naivebayes' package is loaded into the workspace already
+
+# Build a NB model of location
+locmodel <- naive_bayes(location ~ daytype + hourtype, data = locations)
+
+# Predict Brett's location on a weekday afternoon
+predict(locmodel,weekday_afternoon)
+
+# Predict Brett's location on a weekday evening
+predict(locmodel,weekday_evening)
+```
+
+
+```{r}
+dondeestoy<-read.csv("location.csv",header = TRUE)
+head(dondeestoy)
+
+library(naivebayes)
+locmodel <- naive_bayes(location ~ ., data = dondeestoy)
+
+weekday_evening<-data.frame(daytype="weekday",hourtype="evening",location="home")
+
+predict(locmodel,weekday_evening)
+
+weekend_afternoon<-data.frame(daytype="weekend",hourtype="afternoon",location="home")
+predict(locmodel,weekend_afternoon)
+```
+
+
+## Corrección de laplace
+Esta correccion evita que la probabilidad de eventos no datados arrastre el resto de probabilidades asociadas a cero. PUes la simplificación del modelo ingenuo de bayes es que no calcula las probabilidades cruzaas completas sino que supone que todos los sucesos son independientes y calcula la probabilidad condicionada como multiplicación de la probabilidad de sus ocurrencias.
+
+Vamos a comparar las probabilidades dadas por el modelo normal, y el que añadimos laplace=1, es decir añadimos un suceso a cada combinacion de sucesos. 
+
+```{r}
+# The 'naivebayes' package is loaded into the workspace already
+# The Naive Bayes location model (locmodel) has already been built
+
+# Observe the predicted probabilities for a weekend afternoon
+predict(locmodel,weekend_afternoon , type="prob")
+
+# Build a new model using the Laplace correction
+locmodel2 <- naive_bayes(location ~ daytype + hourtype, data = dondeestoy, laplace=1)
+
+# Observe the new predicted probabilities for a weekend afternoon
+predict(locmodel2,weekend_afternoon , type="prob")
+```
+
+## categorizacion
+Un problema del uso de naive bayes es que usa datos categorizados por lo que con origenes de datos numericos continuos hay que realizar una pre categorización o agrupamiento y elegir unas categorías o zonas que definan las mismas antes de aplicar el modelo. Sería imposible aplicarlo al conjunto entero continuo pues salrían infinidad de casos cruzados y hay que simplificar.
+
+Hay muchas herramientas en R para hacer esto, usando cuantiles, o bolsas de palabras en casos numñericos.
+
+# PREDICCIONES BINARIAS POR REGRESION
+las binarias son un caso particular de regresión en ls que se muestran algunos problemas de predición. El priemro es que al usar regresión lineal para datos binarios(0,1) (si, no) la linea nos proporciona un ajuste muy malo a la realidad de los datos.
+
+Una forma de evitarlo es usando la predicción logaritmica, que aplica un ajuste log a los datos entre 0, 1 y da mejores resultados:
+
+```{r}
+m <- glm(y ~ x1 + x2 + x3,
+           data = my_dataset,
+           family = "binomial")
+
+prob <- predict(m, test_dataset,
+          type = "response")
+
+pred <- ifelse(prob > 0.50, 1, 0)
+
+```
+
+## Construyendo modelos simples de regresión logística
+El conjunto de datos de donantes contiene 93.462 ejemplos de personas enviadas por correo en una solicitud de recaudación de fondos para veteranos militares paralizados. La columna `donated` es 1 si la persona hizo una donación en respuesta al correo y 0 en caso contrario. Este resultado binario será la variable dependiente para el modelo de regresión logística.
+
+Las columnas restantes son características de los posibles donantes que pueden influir en su comportamiento de donación. Estas son las variables independientes del modelo.
+
+Al construir un modelo de regresión, a menudo es útil formar una hipótesis sobre qué variables independientes serán predictivas de la variable dependiente. La columna `bad_address`, que se establece en 1 para una dirección de correo no válida y 0 en caso contrario, parece que podría reducir las posibilidades de una donación. Del mismo modo, uno podría sospechar que el interés religioso (`interest_religion`) y el interés en los asuntos de veteranos (`interest_veterans`) se asociarían con mayores donaciones caritativas.
+
+En este ejercicio, usará estos tres factores para crear un modelo simple de comportamiento de donación.
+
+INSTRUCCIONES
+100 XP
+La tabla donors está disponible en su espacio de trabajo.
+
+Examine a los donantes usando la función str ().
+Cuente el número de ocurrencias de cada nivel de la variable donada usando la función table ().
+Ajuste un modelo de regresión logística utilizando la interfaz de fórmula y las tres variables independientes descritas anteriormente.
+Llame a glm () con la fórmula como primer argumento y el marco de datos como argumento de datos.
+Guarde el resultado como donation_model.
+Resume el objeto modelo con summary ().
+```{r}
+donors<-read.csv("donors.csv",header = TRUE)
+head(donors)
+str(donors)
+
+# Explore the dependent variable
+table(donors$donate)
+require(naivebayes)
+# Build the donation model
+donation_model <- glm(donated ~ bad_address + interest_religion + interest_veterans, data = donors, family = "binomial")
+
+# Summarize the model results
+summary(donation_model)
+
+```
+## Hacer una predicción binaria
+En el ejercicio anterior, utilizó la función glm() para construir un modelo de regresión logística del comportamiento del donante. Al igual que con muchos de los métodos de aprendizaje automático de R, puede aplicar la función de predicción() al objeto modelo para predecir el comportamiento futuro. Por defecto, predic() produce predicciones en términos de log odds a menos que se especifique type = "response". Esto convierte las probabilidades del registro en probabilidades.
+
+Debido a que un modelo de regresión logística estima la probabilidad del resultado, depende de usted determinar el umbral en el que la probabilidad implica la acción
+
+Uno debe equilibrar los extremos de ser demasiado cauteloso frente a ser demasiado agresivo. Por ejemplo, si solicitara solo a las personas con una probabilidad de donación del 99% o superior, es posible que se pierda a muchas personas con probabilidades estimadas más bajas que todavía eligen donar. Este equilibrio es particularmente importante a considerar para los resultados severamente desequilibrados, como en este conjunto de datos donde las donaciones son relativamente raras.
+
+
+INSTRUCCIONES
+Los donantes del conjunto de datos y el modelo donation_model ya están cargados en su espacio de trabajo.
+
+Use la función de predicción () para estimar la probabilidad de donación de cada persona. Usa el argumento tipo para obtener probabilidades. Asigna las predicciones a una nueva columna llamada donation_prob.
+Encuentre la probabilidad real que una persona promedio donaría al pasar la función mean () a la columna apropiada del marco de datos de los donantes.
+Use ifelse () para predecir una donación si su probabilidad de donación prevista es mayor que el promedio. Asigna las predicciones a una nueva columna llamada donation_pred.
+Use la función mean () para calcular la precisión del modelo.
+
+```{r}
+# Estimate the donation probability
+donors$donation_prob <- predict(donation_model, type = "response")
+
+head(donors)
+# Find the donation probability of the average prospect
+mean(donors$donated)
+# establecemos un umbral de clasificación de que si es >50,4% la persona donará
+# Predict a donation if probability of donation is greater than average (0.0504)
+donors$donation_pred <- ifelse(donors$donation_prob > 0.0504, 1, 0)
+head(donors)
+# Calculate the model's accuracy
+mean(donors$donation_pred == donors$donated)
+
+# cual es la % de acierto si el modelo es predecir siempre que no hay donación.
+mean(donors$donated == 0)
+# así que ojo, hay que valorar el acierto dentro del conjunto pequeño sino estamos falseando esultados
+```
+## Cálculo de curvas ROC y AUC
+Como se ha visto en el ejemplo anterior, cuando uno de los eventos es muy raro predecir el evento opuesto conlleva un gran porcentaje d aciertos, lo que hay que vigilar y entender.
+
+en estos casos es mejor sacrificar los aciertos generales en favor de concentrar los sobre uno de los resultados, el más raro.
+
+
+Los ejercicios anteriores han demostrado que la precisión es una medida muy engañosa del rendimiento del modelo en conjuntos de datos desequilibrados. Hacer una gráfica del desempeño del modelo ilustra mejor la compensación entre un modelo que es demasiado agresivo y uno que es demasiado pasivo.
+
+En este ejercicio, creará una curva ROC y calculará el área bajo la curva (AUC) para evaluar el modelo de regresión logística de las donaciones que construyó anteriormente.
+
+INSTRUCCIONES
+100 XP
+Los donantes de conjuntos de datos con la columna de probabilidades pronosticadas, donation_prob, ya están cargados en su espacio de trabajo.
+
+Cargue el paquete pROC.
+Cree una curva ROC con roc () y las columnas de donaciones reales y pronosticadas. Almacene el resultado como ROC.
+Usa plot () para dibujar el objeto ROC. Especifique col = "azul" para colorear la curva azul.
+Calcule el área bajo la curva con auc ().
+```{r}
+# Load the pROC package
+library(pROC)
+
+# Create a ROC curve
+ROC <- roc(donors$donated, donors$donation_prob)
+
+# Plot the ROC curve
+plot(ROC, col = "blue")
+
+# Calculate the area under the curve (AUC)
+auc(ROC)
+```
+Awesome job! Based on this visualization, the model isn't doing much better than baseline— a model doing nothing but making predictions at random
+
+## que hacer con los NA
+```{r}
+# create gender factor
+my_data$gender <- factor(my_data$gender,
+                         levels = c(0, 1, 2),
+                         labels = c("Male", "Female", "Other"))
+
+# interaction of obesity and smoking
+glm(disease ~ obesity * smoking,
+      data = health,
+      family = "binomial")
+```
+
+Codificación de características categóricas
+A veces, un conjunto de datos contiene valores numéricos que representan una característica categórica.
+
+En el conjunto de datos de donantes, wealth_rating usa números para indicar el nivel de riqueza del donante:
+
+0 = Desconocido
+1 = bajo
+2 = Medio
+3 = Alto
+Este ejercicio ilustra cómo preparar este tipo de característica categórica y examina su impacto en un modelo de regresión logística.
+
+INSTRUCCIONES
+100 XP
+Los donantes del marco de datos se cargan en su espacio de trabajo.
+
+Cree un factor a partir del numérico wealth_rating con etiquetas como se muestra arriba pasando la función factor () a la columna que desea convertir, los niveles individuales y las etiquetas.
+Use relevel () para cambiar la categoría de referencia a Medium. El primer argumento debería ser tu columna de factores.
+Cree un modelo de regresión logística utilizando la columna wealth_rating para predecir donaciones y muestre el resultado con summary ().
+
+```{r}
+# Convert the wealth rating to a factor
+donors$wealth_rating <- factor(donors$wealth_rating, levels = c(0,1,2,3), labels = c("Unknown","Low","Medium","High"))
+
+# Use relevel() to change reference category
+donors$wealth_rating <- relevel(donors$wealth_rating, ref = "Medium")
+m<-glm(donated ~ wealth_rating ,
+      data = donors,
+      family = "binomial")
+# See how our factor coding impacts the model
+summary(m)
+```
+## Manejo de datos faltantes
+Algunos de los posibles donantes tienen datos de edad faltantes. Desafortunadamente, R excluirá cualquier caso con valores de NA al construir un modelo de regresión.
+
+Una solución alternativa es reemplazar o imputar los valores perdidos con un valor estimado. Después de hacerlo, tageambién puede crear un indicador de datos faltantes para modelar la posibilidad de que los casos con datos faltantes sean diferentes de los que carecen.
+
+INSTRUCCIONES
+100 XP
+Los donantes del marco de datos se cargan en su espacio de trabajo.
+
+Use el resumen () sobre los donantes para encontrar la edad promedio de los prospectos con datos no perdidos.
+Utilice ifelse () y la prueba es.na (donadores $ edad) para imputar el promedio (redondeado a 2 lugares decimales) para los casos con edad faltante.
+Cree una variable ficticia binaria llamada missing_age que indique la presencia de datos faltantes utilizando otra llamada ifelse () y la misma prueba.
+
+```{r}
+# Find the average age among non-missing values
+summary(donors$age)
+
+# Impute missing age values with mean(age)
+donors$imputed_age <- ifelse(is.na(donors$age),61.65,donors$age)
+
+# Create missing value indicator for age
+donors$missing_age <- ifelse(is.na(donors$age),1,0)
+```
+
+## Construyendo un modelo más sofisticado
+Uno de los mejores predictores de donaciones futuras es una historia de regalos recientes, frecuentes y grandes. En términos de comercialización, esto se conoce como R / F / M:
+
+Recency
+Frequency
+Money
+
+Es muy probable que los donantes que no han administrado tanto recientemente como con frecuencia realicen nuevamente; en otras palabras, el impacto combinado de reciente y frecuencia puede ser mayor que la suma de los efectos por separado.
+
+Debido a que estos predictores juntos tienen un mayor impacto en la variable dependiente, su efecto conjunto debe modelarse como una interacción.
+
+INSTRUCCIONES
+100 XP
+El conjunto de datos de donantes se ha cargado para usted.
+
+Cree un modelo de regresión logística de donado en función del dinero más la interacción de lo reciente y la frecuencia. Use * para agregar el término de interacción.
+Examine el resumen del modelo () para confirmar que se agregó el efecto de interacción.
+Guarde las probabilidades pronosticadas del modelo como rfm_prob. Use la función de predicción () y recuerde establecer el argumento de tipo.
+Trace una curva ROC usando la función roc (). Recuerde, esta función toma la columna de resultados y el vector de predicciones.
+Calcule el AUC para el nuevo modelo con la función auc () y compare el rendimiento con el modelo más simple.
+
+```{r}
+# Build a recency, frequency, and money (RFM) model
+rfm_model <- glm(donated ~ money + recency* frequency ,data = donors,family = "binomial")
+
+# Summarize the RFM model to see how the parameters were coded
+summary(rfm_model)
+
+# Compute predicted probabilities for the RFM model
+rfm_prob <- predict(rfm_model, type = "response")
+
+# Plot the ROC curve and find AUC for the new model
+library(pROC)
+ROC <- roc(donors$donated, rfm_prob)
+plot(ROC, col = "red")
+auc(ROC)
+```
+
+## Construyendo un modelo de regresión gradual
+En ausencia de experiencia en la materia, la regresión gradual puede ayudar con la búsqueda de los predictores más importantes del resultado de interés.
+
+En este ejercicio, utilizará un enfoque gradual progresivo para agregar predictores al modelo uno por uno hasta que no se vea ningún beneficio adicional.
+
+INSTRUCCIONES
+100 XP
+El conjunto de datos de donantes se ha cargado para usted.
+
+Use la interfaz de fórmula R con glm () para especificar el modelo base sin predictores. Establezca la variable explicativa igual a 1.
+Use la interfaz de la fórmula R nuevamente con glm () para especificar el modelo con todos los predictores.
+Aplique el paso () a estos modelos para realizar una regresión progresiva hacia adelante. Establezca el primer argumento en null_model y establezca direction = "forward". Esto puede tardar un tiempo (hasta 10 o 15 segundos) ya que su computadora tiene que adaptarse a varios modelos diferentes para realizar una selección gradual.
+Cree un vector de probabilidades pronosticadas utilizando la función de predicción ().
+Trace la curva ROC con roc () y plot () y calcule el AUC del modelo por pasos con auc ().
+
+```{r}
+# Specify a null model with no predictors
+null_model <- glm(donated ~1, data = donors, family = "binomial")
+
+# Specify the full model using all of the potential predictors
+full_model <- glm(donated ~ ., data = donors, family = "binomial")
+
+# Use a forward stepwise algorithm to build a parsimonious model
+step_model <- step(null_model, scope = list(lower = null_model, upper = full_model), direction = "forward")
+
+# Estimate the stepwise donation probability
+step_prob <- predict(step_model, type = "response")
+
+# Plot the ROC of the stepwise model
+library(pROC)
+ROC <- roc(donors$donated, step_prob)
+plot(ROC, col = "red")
+auc(ROC)
+```
+
+# ARBOLES DE DECISION
+UNn arbol de decisión es una estructura ramificada que muestra las diferentes opciones y sus consecuencias.
+Los puntos en lso que hay que tomar decisiones se muestran como nodos, las ramas unen estos nodos y finalmente las decisiones finales son como las hojas, donde el camino termina (nodos termiales).
+
+divide y venceras, este es el objetivo de ls árboles, 
+
+Vamos a ver algunos paquetes que permiten hacer arboles de decisión en R.
+
+#rpart
+rpart es una librería que hace arboles de decision a partir de datos.
+la función rpart crea, a partir de un conjunto de datos, y de una formula de prediciión, un arbol de decisión que puede usarse para predecir con la función `predict`
+```{r}
+# building a simple rpart classification tree
+library(rpart)
+m <- rpart(outcome ~ loan_amount + credit_score, data = loans,
+             method = "class")
+# making predictions from an rpart tree
+p <- predict(m, test_data, type = "class")
+```
+
+## crear un arbol de decisión simple
+
+El conjunto de datos de préstamos `loan` contiene los datos de 11312 personas elegidas al azar que fueron solicitantes y luego recibieron préstamos de Lending Club, una compañía de préstamos entre particulares establecida en los Estados Unidos.
+
+Utilizará un árbol de decisiones para tratar de aprender patrones en el resultado de estos préstamos (reembolsados o no) en función del monto del préstamo solicitado y el puntaje de crédito en el momento de la solicitud.
+
+Luego, vea cómo las predicciones del árbol difieren para un solicitante con buen crédito versus uno con mal crédito.
+```{r}
+loans<-read.csv("loans.csv",header = TRUE,strip.white=TRUE)
+# strip.white=TRUE sirve para hacer trim al leer y descartr los espacios en blanco de cad ini y fin de palabra
+head(loans)
+good_credit<-data.frame(   
+  loan_amount="LOW",
+  emp_length="10+ years",        
+  home_ownership="MORTGAGE",   
+  income="HIGH",            
+  loan_purpose="major_purchase",
+  debt_to_income="AVERAGE",    
+  credit_score="HIGH",     
+  recent_inquiry="NO",    
+  delinquent="NEVER",        
+  credit_accounts="MANY",   
+  bad_public_record="NO", 
+  credit_utilization="LOW",
+  past_bankrupt="NO",     
+  outcome="repaid"                
+)
+bad_credit<-data.frame(   
+  loan_amount="LOW",
+  emp_length="6 - 9 years",        
+  home_ownership="RENT",   
+  income="MEDIUM",            
+  loan_purpose="car",
+  debt_to_income="LOW",    
+  credit_score="LOW",     
+  recent_inquiry="YES",    
+  delinquent="NEVER",        
+  credit_accounts="FEW",   
+  bad_public_record="NO", 
+  credit_utilization="HIGH",
+  past_bankrupt="NO",     
+  outcome="repaid"                
+)
+
+# Load the rpart package
+library(rpart)
+
+# Build a lending model predicting loan outcome versus loan amount and credit score
+loan_model <- rpart(outcome ~ loan_amount + credit_score, data = loans, method = "class", control = rpart.control(cp = 0))
+
+# Make a prediction for someone with good credit
+predict(loan_model, good_credit, type = "class")
+
+# Make a prediction for someone with bad credit
+predict(loan_model, bad_credit, type = "class")
+
+
+# VEAMOS EL ARBOL DE DECISION
+loan_model
+
+# Load the rpart.plot package
+library(rpart.plot)
+
+# Plot the loan_model with default settings
+rpart.plot(loan_model)
+
+# Plot the loan_model with customized settings
+rpart.plot(loan_model, type = 3, box.palette = c("red", "green"), fallen.leaves = TRUE)
+```
+
+## overfitting
+los arboles de decision son problematicos con la sobreestimacion de parametros, pues la metodología obliga siempre a divisiones paralelas a los ejes de variables y pude generar muchos, pese a que el modelo puede ser muy sencillo. Por eso es siempre conveniente crear un conjunto de datos de entrenamiento y otro de testado final.
+
+###Crear conjuntos de datos de prueba aleatorios
+Antes de construir un modelo de préstamo más sofisticado, es importante mantener una parte de los datos del préstamo para simular qué tan bien va a predecir los resultados de los futuros solicitantes de préstamos.
+
+Como se muestra en la siguiente imagen, puede usar el 75% de las observaciones para el entrenamiento y el 25% para probar el modelo.
+
+Diagrama de árbol de decisión
+
+La función `sample()` se puede usar para generar una muestra aleatoria de filas para incluir en el conjunto de entrenamiento. Simplemente proporciónele el número total de observaciones y el número necesario para el entrenamiento.
+
+Use el vector resultante de identificadores de filas para subconjuntos de los préstamos en conjuntos de datos de capacitación y prueba.
+
+```{r}
+# Determine the number of rows for training
+nrow(loans)
+0.75*nrow(loans)
+# Create a random sample of row IDs
+sample_rows <- sample(nrow(loans), 0.75*nrow(loans))
+
+# Create the training dataset
+loans_train <- loans[sample_rows,]
+
+# Create the test dataset
+loans_test <- loans[-sample_rows,]
+```
+
+### Construyendo y evaluando un árbol más grande
+Anteriormente, creaba un árbol de decisión simple que utilizaba el puntaje de crédito del solicitante y el monto del préstamo solicitado para predecir el resultado del préstamo.
+
+Lending Club tiene información adicional sobre los solicitantes, como el estado de la propiedad de la vivienda, la duración del empleo, el propósito del préstamo y las quiebras anteriores, que pueden ser útiles para hacer predicciones más precisas.
+
+Usando todos los datos disponibles del solicitante, construya un modelo de préstamo más sofisticado usando el conjunto de datos de entrenamiento aleatorio creado previamente. Luego, use este modelo para hacer predicciones sobre el conjunto de datos de prueba para estimar el rendimiento del modelo en futuras solicitudes de préstamos.
+```{r}
+# Grow a tree using all of the available applicant data
+loan_model <- rpart(outcome ~ ., data = loans_train, method = "class", control = rpart.control(cp = 0))
+
+# Make predictions on the test dataset
+loans_test$pred <- predict(loan_model,loans_test, type = "class")
+
+# Examine the confusion matrix
+table(loans_test$pred,loans_test$outcome)
+
+# Compute the accuracy on the test dataset
+mean(loans_test$pred==loans_test$outcome)
+```
+
+## ajustar los arboles a la medida correcta
+
+Dada la facilidad con la que un arbol se complica muchos paquetes tienen funciones especiales para cortar, limitar y optimizar el tamaño y la forma de los arboles.
+Por ejemplo rpart lo puede hacer con control linitando la profuncidad del arbol y el numero de divisiones máximo.
+
+el proceso puede hacerse antes o despues de crear el arbol, en lo que llamamos pre y post poda o control.
+En concreto la librería rpart contiene un parametro que hemos estado usando el cp, que controla la complejidad del arrbol.
+
+```{r}
+# pre-pruning with rpart
+library(rpart)
+prune_control <- rpart.control(maxdepth = 30, minsplit = 20)
+
+m <- rpart(repaid ~ credit_score + request_amt,
+           data = loans,
+           method = "class",
+           control = prune_control)
+
+# post-pruning with rpart
+m <- rpart(repaid ~ credit_score + request_amt,
+           data = loans,
+           method = "class")
+
+plotcp(m)
+
+m_pruned <- prune(m, cp = 0.20)
+```
+### Previniendo árboles crecidos
+El árbol cultivado en el conjunto completo de datos del solicitante creció hasta ser extremadamente grande y extremadamente complejo, con cientos de divisiones y nodos de hojas que contenían solo un puñado de solicitantes. Este árbol sería casi imposible de interpretar por un oficial de préstamos.
+
+Usando los métodos previos a la poda para la detención temprana, puede evitar que un árbol se vuelva demasiado grande y complejo. Vea cómo las opciones de control de rpart para la profundidad máxima del árbol y el recuento mínimo de división afectan el árbol resultante.
+
+```{r}
+# Grow a tree with maxdepth of 6
+loan_model <- rpart(outcome ~ ., data = loans_train, method = "class", control = rpart.control(cp = 0, maxdepth = 6))
+
+# Compute the accuracy of the simpler tree
+loans_test$pred <- predict(loan_model, loans_test, type = "class")
+mean(loans_test$pred == loans_test$outcome)
+
+# Grow a tree with minsplit of 500
+loan_model2 <- rpart(outcome ~ ., data = loans_train, method = "class", control = rpart.control(cp = 0, minsplit = 500))
+
+# Compute the accuracy of the simpler tree
+loans_test$pred2 <- predict(loan_model2, loans_test, type = "class")
+mean(loans_test$pred2 == loans_test$outcome)
+```
+
+### Creando un árbol bien podado
+Evitar que un árbol crezca hasta el final puede llevarlo a ignorar algunos aspectos de los datos o perder tendencias importantes que pueda haber descubierto más adelante.
+Al usar la poda posterior, puede hacer crecer intencionalmente un objeto grande y complejo y luego podarlo para que sea más pequeño y más eficiente más adelante.
+
+En este ejercicio, tendrá la oportunidad de construir una visualización del rendimiento del árbol frente a la complejidad, y usar esta información para podar el árbol a un nivel apropiado.
+
+```{r}
+# Grow an overly complex tree
+loan_model <- rpart(outcome ~ ., data = loans_train, method = "class", control = rpart.control(cp = 0))
+
+# Examine the complexity plot
+plotcp(loan_model)
+
+# Prune the tree
+loan_model_pruned <- prune(loan_model, cp = 0.0014)
+
+# Compute the accuracy of the pruned tree
+loans_test$pred <- predict(loan_model_pruned, loans_test, type = "class")
+mean(loans_test$pred == loans_test$outcome)
+```
+
+
+
+# bosques de clasificación
+la union de arboles de decision en conjunto con otros es uno de los métodos má seficientes de predicción y más usados hoy día para big dat.
+
+
+En realidad lo que se hace es construir diferentes conjuntos de entrenamiento y de test sobre los mismos datos, lo que genera diferentes aroles de decisión sobre los mismos datos, la union de estos arboles de diferentes complejidades y con datos de origen distintos aunque del mismo conjunto de datos da origen a un random forest, cuya principal caracteristica es que crea modelos mucho más robustos de los que se obrtendrían creando un solo arbol de deicion complejo sobre los mismos datos. Cuando se unen estos arboles se hace el prodeso de ensemble o ensamblado de modelos que genera predicciones robustas.
+
+
+Los grupos de árboles de clasificación se pueden combinar en un conjunto que genera una única predicción al permitir que los árboles "voten" sobre el resultado.
+
+```{r}
+# building a simple random forest
+library(randomForest)
+m <- randomForest(repaid ~ credit_score + request_amt, data = loans,
+             ntree = 500,    # number of trees in the forest
+             mtry = sqrt(p)) # number of predictors (p) per tree
+
+# making predictions from a random forest
+p <- predict(m, test_data)
+
+```
+
+
+
+### Construyendo un modelo de bosque aleatorio
+A pesar del hecho de que un bosque puede contener cientos de árboles, hacer crecer un bosque de árboles de decisión es tal vez incluso más fácil que crear un solo árbol muy afinado.
+
+Usando el paquete randomForest, construya un bosque al azar y vea cómo se compara con los árboles individuales que construyó previamente.
+
+Tenga en cuenta que debido a la naturaleza aleatoria del bosque, los resultados pueden variar ligeramente cada vez que crea el bosque.
+
+
+```{r}
+# Load the randomForest package
+library(randomForest)
+
+# Build a random forest model
+loan_model <- randomForest(outcome ~ ., data = loans_train) 
+
+# Compute the accuracy of the random forest
+loans_test$pred <- predict(loan_model,loans_test)
+mean(loans_test$pred == loans_test$outcome)
+```
+
