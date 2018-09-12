@@ -20,9 +20,12 @@ Los pronósticos se pueden hacer mediante muchos modelos, por ejemplo con regres
 
 Como hemos indicado, el objetivo del aprendizaje supervisado es el de crear una función capaz de predecir el valor correspondiente a cualquier objeto de entrada válida después de haber visto una serie de ejemplos, los datos de entrenamiento.
 
+Existen diferntes algoritmos que abordan el problema de aprendizaje supervisado y tecnicas de minería de datos, en concreto vamos a explicar someramente los siguientes:
 
+ - knn ((k-Nearest Neighbour Classification)
+ - naive bayes
 
-## knn (k-Nearest Neighbour Classification)
+# knn (k-Nearest Neighbour Classification)
 Esta función del paquete `class` realiza la clasificación de un conjunto de datos, veamos un ejemplo.
 
 ## Reconociendo una señal de tráfico con kNN
@@ -170,7 +173,7 @@ INSTRUCCIONES
 El paquete de clase ya está cargado en su espacio de trabajo junto con los signos de conjunto de datos y signos_prueba. El objeto signs_actual contiene los verdaderos valores de los signos.
 
 Calcule la precisión del modelo predeterminado k = 1 usando el código dado.
-Modifique la llamada a la función knn () configurando k = 7.
+Modifique la llamada a la función knn() configurando k = 7.
 Revise el código una vez más configurando k = 15 y compare los tres valores de precisión.
 
 ```{r}
@@ -187,175 +190,124 @@ k_15 <- knn(train = signs[-1], test = signs_test[-1], cl = signs$sign_type, k = 
 mean(k_15 == signs_actual)
 ```
 
-# Probabilidades de cálculo
-El marco de datos `where9am` contiene 91 días (trece semanas) de datos en los que Brett registró su ubicación a las 9 a.m. todos los días, así como si el tipo de día era un fin de semana o un día laborable.
+# Naive Bayes
+Naive Bayes es un modelo de pronóstico simple que usa la probabilidad Bayesiana. El modelo aplica la probabilidad condicionada de BAYES para obtener un resultado de pronostico.
 
-Usando la fórmula de probabilidad condicional a continuación, puede calcular la probabilidad de que Brett esté trabajando en la oficina, dado que es un día laborable.
+El modelo bayesiano de probabilidad condicionada se representa como:
+$P(A|B) = P(A \cap B) / P(B)$
 
-P (A | B) = P (A y B) P (B)
+Es decir, la probabilidad de que se de el caso A dado B es igual a la probabilidad de la intersección de A con B partido la probabilidad de B.
 
-Cálculos como estos son la base del modelo de predicción de destino de `Naive Bayes` que desarrollará en ejercicios posteriores.
+El paquete `naivebayes` contienen las formulas necesarias para estos modelos.
 
-INSTRUCCIONES
-100 XP
-Encuentre P (oficina) usando nrow () y subconjunto () para contar filas en el conjunto de datos y guarde el resultado como p_A.
-Encuentre P (día laborable), usando nrow () y subconjunto () nuevamente, y guarde el resultado como p_B.
-Use nrow () y subconjunto () un tiempo final para encontrar P (oficina y día de la semana). Guarde el resultado como p_AB.
-Compute P (office | weekday) y guarde el resultado como p_A_given_B.
-Imprime el valor de p_A_given_B.
+## Calculo real de probabilidad condicional
+Con la base de datos de `locations.csv` vamos a experimentar el calculo real de probabilidad condicional. Veamos como se calcula la probabilidad de estar en la oficina sabiendo que es un día laborable.
 
+La base de datos `locations.csv`  contienen información de la ubicación en la que se encontraba una persana en diferentes momentos y días durante unas cuantas semanas.
 
-where9am
+```{r}
+# leemos la base de datos
+where9am<-read.csv("locations.csv",header = TRUE)
 head(where9am)
-    daytype location
-10  weekday   office
-34  weekday   office
-58  weekday   office
-82  weekend     home
-106 weekend     home
-130 weekday   campus
-```{r}
-# Compute P(A) 
-p_A <- nrow(subset(where9am, location=="office",select=location))/ nrow(where9am)
 
-# Compute P(B)
-p_B <- nrow(subset(where9am, daytype=="weekday",select=daytype))/ nrow(where9am)
+# P(A)= en la oficina 
+p_A <- nrow(subset(where9am, location == "office")) / nrow(where9am)
 
-# Compute the observed P(A and B)
-p_AB <- nrow(subset(subset(where9am, daytype=="weekday"),location=="office"))/ nrow(where9am)
+# P(B)= dia laborable
+p_B <- nrow(subset(where9am, daytype == "weekday")) / nrow(where9am)
 
-# Compute P(A | B)
-p_A_given_B <- p_AB/p_B
-p_A_given_B
-```
+# P(A interseccion B) observada
+p_AB <- nrow(subset(where9am, where9am$location == "office" & where9am$daytype == "weekday")) / nrow(where9am)
 
-```{r}
-#esta es la solucion del monitor del curso
-# Compute P(A) 
-p_A <- nrow(subset(where9am, location == "office")) / 91
-
-# Compute P(B)
-p_B <- nrow(subset(where9am, daytype == "weekday")) / 91
-
-# Compute the observed P(A and B)
-p_AB <- nrow(subset(where9am, where9am$location == "office" & where9am$daytype == "weekday")) / 91
-
-# Compute P(A | B)
+# P(A | B) = P de A sabiendo que ha ocurrido B
 p_A_given_B <- p_AB / p_B
 p_A_given_B
 ```
 
-## Un simple modelo de ubicación de Naive Bayes
-Los ejercicios anteriores mostraron que la probabilidad de que Brett esté en el trabajo o en casa a las 9 a.m. depende en gran medida de si es un fin de semana o un día de la semana.
-
-Para ver este hallazgo en acción, utilice el marco de datos where9am para construir un modelo de Naive Bayes en los mismos datos.
-
-A continuación, puede utilizar este modelo para predecir el futuro: ¿dónde cree el modelo que Brett estará a las 9 a.m. el jueves ya las 9 a.m. del sábado?
-
-INSTRUCCIONES
-100 XP
-El marco de datos donde 9am está disponible en su espacio de trabajo. Este conjunto de datos contiene información sobre la ubicación de Brett a las 9 a.m. en días diferentes.
-
-Cargue el paquete naivebayes.
-Use naive_bayes () con una fórmula como y ~ x para construir un modelo de ubicación como una función del tipo de día.
-Pronostique la ubicación del jueves a las 9 a.m. utilizando predecir () con el objeto jueves jueves9 como el argumento de datos nuevos.
-Haz lo mismo para predecir la ubicación del sábado9.
-
+Vamos a calcular estos mismos datos con el modelo de naivebayes, usando el paquete `naivebayes`
 
 ```{r}
-# Load the naivebayes package
-library(naivebayes)
+    # Cargamos el paquete
+        library(naivebayes)
+    # leemos la base de datos
+    #where9am<-read.csv("locations.csv",header = TRUE)
+    #head(where9am)
 
-# Build the location prediction model
-locmodel <- naive_bayes(location ~ daytype, data = where9am)
-thursday9am<-data.frame(daytype="weekday")
-# Predict Thursday's 9am location
-predict(locmodel,thursday9am)
-
-# Predict Saturdays's 9am location
-
-saturday9am<-data.frame(daytype="weekend")
-
-predict(locmodel,saturday9am)
+    # Construimos un modelo de predicción de la localización
+    # en función del tipo de dia
+        locmodel <- naive_bayes(location ~ daytype, data = where9am)
+        plot(locmodel)
+    # sabemos que es un dia laborable
+        hecho<-data.frame(daytype="weekday")
+    # predecimos las probabilidades
+        predict(locmodel,hecho,type = "class")
+        predict(locmodel,hecho, type="prob")
+    # sabemos que es un dia laborable
+        hecho<-data.frame(daytype="weekend")        
 ```
 
-## Examinando probabilidades "crudas"
-El paquete `naivebayes` ofrece varias maneras de mirar dentro de un modelo de Naive Bayes.
+Como hemos visto la salidad del modelo puede ser la simple predicción o tambien la lista completa de probabilidades estimadas añadiendo el argumento `type="prob`.
 
-Escribir el nombre del objeto modelo proporciona las probabilidades a priori (globales) y condicionales de cada uno de los predictores del modelo. Si uno estuviera tan inclinado, podría usar estos para calcular probabilidades posteriores (predichas) a mano.
+Los modelos se pueden complicar aplicando fórmulas de variables dentro del primer argumento de la fórmula. Por ejemplo podemos crear un modelo de predicción de la ubicación, no solo según el tipo de día sino en función de la hora del día también, que es otra variable de los datos.
+Es tambien importante añadir el argumento de laplace, que implica suponer que al menos se da un caso de cada combinación posible. Si no se hace esto pueden rechazarse hipotesis que aunque con probabilidad baja, se pueden dar.
 
-Alternativamente, R calculará las probabilidades posteriores para usted si el parámetro type = "prob" se suministra a la función de predicción ().
+**tengo problemas con el resultado de estas funiones ya que no funciona bien**
 
-Usando estos métodos, examine cómo la probabilidad de ubicación de las 9am del modelo varía de día a día.
-
-INSTRUCCIONES
-100 XP
- El modelo de modelo locmodel que usted ajustó en el ejercicio anterior está en su espacio de trabajo.
-
- Imprima el objeto locmodel en la consola para ver las probabilidades calculadas a priori y condicionales.
- Use la función de predicción () de manera similar al ejercicio anterior, pero con type = "prob" para ver las probabilidades pronosticadas para el jueves a las 9 a. M.
-
- Compare esto con las probabilidades pronosticadas para el sábado a las 9 a. M.
- 
- 
 ```{r}
-# The 'naivebayes' package is loaded into the workspace
-# and the Naive Bayes 'locmodel' has been built
+    # paquete de naivebayes 
+        require(naivebayes)
+    # posibles ubicaciones
+        unique(where9am$location)
+    # posibles horas del dia    
+        unique(where9am$hourtype)
+        str(where9am)
+        table(where9am$hourtype)
+    # construimos un nuevo modelo de bayes que nos de la localización
+    # en función del día y de la hora, añadimos laplace=1, para crear al menos un caso de 
+    #     
+        locmodel <- naive_bayes(location ~ daytype + hourtype, data = where9am,laplace=1)
+    # vemos una representacion del modelo    
+        plot(locmodel)
+    
+    # queremos conocer cual es la localización más probable un
+    # un dia laborable por la mañana
+    # creamos una data frame con estos datos    
+        hecho<-data.frame(daytype="weekday",hourtype="morning")
 
-# Examine the location prediction model
-locmodel
+    # Predecir localización
+        predict(locmodel,hecho)
+        predict(locmodel,hecho, type = "prob")
 
-# Obtain the predicted probabilities for Thursday at 9am
-predict(locmodel,thursday9am,type = "prob")
+    # Predict Brett's location on a weekday evening
+        hecho2<-data.frame(daytype='weekday',hourtype='night')
+#        subset(where9am, daytype == "weekend" & hourtype =="night")
+#        where9am[where9am$daytype=="weekend" & where9am$hourtype=="evening",]
 
-# Obtain the predicted probabilities for Saturday at 9am
-predict(locmodel,saturday9am,type = "prob")
+        predict(locmodel,hecho2)
+        predict(locmodel,hecho2, type="prob")
 ```
 
-## Un modelo de ubicación más sofisticado
-El conjunto de datos de ubicaciones registra la ubicación de Brett cada hora durante 13 semanas. Cada hora, la información de seguimiento incluye el tipo de día (fin de semana o día de la semana), así como el hourtype (mañana, tarde, noche o noche).
-
-Usando estos datos, construya un modelo más sofisticado para ver cómo la ubicación pronosticada de Brett no solo varía por el día de la semana sino también por la hora del día.
-
-INSTRUCCIONES
-100 XP
-Las ubicaciones del conjunto de datos ya están cargadas en su espacio de trabajo.
-
-Use la interfaz de la fórmula R para construir un modelo donde la ubicación dependa tanto del tipo de día como del tipo de hourtype. Recuerde que la función naive_bayes () toma 2 argumentos: fórmula y datos.
-Predecir la ubicación de Brett en una tarde de lunes a viernes usando el dataframe weekday_afternoon y la función de predicción ().
-Haz lo mismo para un week_evening.
-```{r}
-# The 'naivebayes' package is loaded into the workspace already
-
-# Build a NB model of location
-locmodel <- naive_bayes(location ~ daytype + hourtype, data = locations)
-
-# Predict Brett's location on a weekday afternoon
-predict(locmodel,weekday_afternoon)
-
-# Predict Brett's location on a weekday evening
-predict(locmodel,weekday_evening)
-```
-
+me tiene loco este modelo, pues las predicciones no son buenas, no sé cual es el error pero no da bien.
 
 ```{r}
-dondeestoy<-read.csv("location.csv",header = TRUE)
-head(dondeestoy)
+# modelo general
 
 library(naivebayes)
-locmodel <- naive_bayes(location ~ ., data = dondeestoy)
+locmodel <- naive_bayes(location ~ ., data = where9am)
+plot(locmodel1)
 
-weekday_evening<-data.frame(daytype="weekday",hourtype="evening",location="home")
+weekday_evening<-data.frame(daytype="weekday",hourtype="night")
 
-predict(locmodel,weekday_evening)
-
-weekend_afternoon<-data.frame(daytype="weekend",hourtype="afternoon",location="home")
+predict(locmodel,weekday_evening) 
+predict(locmodel1,weekday_evening, type = "prob")
+# no puede ser que el fin de semana tarde esté en la oficina, algo no va bien
+weekend_afternoon<-data.frame(daytype="weekend",hourtype="afternoon")
 predict(locmodel,weekend_afternoon)
 ```
 
 
-## Corrección de laplace
-Esta correccion evita que la probabilidad de eventos no datados arrastre el resto de probabilidades asociadas a cero. PUes la simplificación del modelo ingenuo de bayes es que no calcula las probabilidades cruzaas completas sino que supone que todos los sucesos son independientes y calcula la probabilidad condicionada como multiplicación de la probabilidad de sus ocurrencias.
+### Corrección de laplace
+Esta corrección evita que la probabilidad de eventos no datados arrastre el resto de probabilidades asociadas a cero. Pues la simplificación del modelo ingenuo de bayes es que no calcula las probabilidades cruzaas completas sino que supone que todos los sucesos son independientes y calcula la probabilidad condicionada como multiplicación de la probabilidad de sus ocurrencias.
 
 Vamos a comparar las probabilidades dadas por el modelo normal, y el que añadimos laplace=1, es decir añadimos un suceso a cada combinacion de sucesos. 
 
@@ -367,23 +319,24 @@ Vamos a comparar las probabilidades dadas por el modelo normal, y el que añadim
 predict(locmodel,weekend_afternoon , type="prob")
 
 # Build a new model using the Laplace correction
-locmodel2 <- naive_bayes(location ~ daytype + hourtype, data = dondeestoy, laplace=1)
+locmodel2 <- naive_bayes(location ~ daytype + hourtype, data = where9am, laplace=1)
 
 # Observe the new predicted probabilities for a weekend afternoon
+predict(locmodel2,weekend_afternoon)
 predict(locmodel2,weekend_afternoon , type="prob")
 ```
 
-## categorizacion
-Un problema del uso de naive bayes es que usa datos categorizados por lo que con origenes de datos numericos continuos hay que realizar una pre categorización o agrupamiento y elegir unas categorías o zonas que definan las mismas antes de aplicar el modelo. Sería imposible aplicarlo al conjunto entero continuo pues salrían infinidad de casos cruzados y hay que simplificar.
+### Categorización
+Un problema del uso de naive_bayes es que usa datos categorizados por lo que con origenes de datos numericos continuos hay que realizar una pre categorización o agrupamiento y elegir unas categorías o zonas que definan las mismas antes de aplicar el modelo. Sería imposible aplicarlo al conjunto entero continuo pues saldrían infinidad de casos cruzados y hay que simplificar.
 
-Hay muchas herramientas en R para hacer esto, usando cuantiles, o bolsas de palabras en casos numñericos.
+Hay muchas herramientas en R para hacer esto, usando cuantiles, o bolsas de palabras en casos numéricos.
 
-# PREDICCIONES BINARIAS POR REGRESION
-las binarias son un caso particular de regresión en ls que se muestran algunos problemas de predición. El priemro es que al usar regresión lineal para datos binarios(0,1) (si, no) la linea nos proporciona un ajuste muy malo a la realidad de los datos.
+# Predicciones binarias por regresión
+las binarias son un caso particular de regresión en las que se muestran algunos problemas de predición. El primero es que al usar regresión lineal para datos binarios(0,1) (si, no) la linea nos proporciona un ajuste muy malo a la realidad de los datos.
 
 Una forma de evitarlo es usando la predicción logaritmica, que aplica un ajuste log a los datos entre 0, 1 y da mejores resultados:
 
-```{r}
+```{r eval=FALSE}
 m <- glm(y ~ x1 + x2 + x3,
            data = my_dataset,
            family = "binomial")
@@ -395,7 +348,7 @@ pred <- ifelse(prob > 0.50, 1, 0)
 
 ```
 
-## Construyendo modelos simples de regresión logística
+## Construir modelos simples de regresión logística
 El conjunto de datos de donantes contiene 93.462 ejemplos de personas enviadas por correo en una solicitud de recaudación de fondos para veteranos militares paralizados. La columna `donated` es 1 si la persona hizo una donación en respuesta al correo y 0 en caso contrario. Este resultado binario será la variable dependiente para el modelo de regresión logística.
 
 Las columnas restantes son características de los posibles donantes que pueden influir en su comportamiento de donación. Estas son las variables independientes del modelo.
@@ -637,24 +590,32 @@ plot(ROC, col = "red")
 auc(ROC)
 ```
 
-# ARBOLES DE DECISION
-UNn arbol de decisión es una estructura ramificada que muestra las diferentes opciones y sus consecuencias.
-Los puntos en lso que hay que tomar decisiones se muestran como nodos, las ramas unen estos nodos y finalmente las decisiones finales son como las hojas, donde el camino termina (nodos termiales).
+# Árboles de decisión
 
-divide y venceras, este es el objetivo de ls árboles, 
+Un arbol de decisión es una estructura ramificada que muestra las diferentes opciones y sus consecuencias. Los puntos en los que hay que tomar decisiones se muestran como *nodos*, las ramas unen estos nodos y finalmente las decisiones finales son como las hojas, donde el camino termina (tambien se denominan nodos termiales).
 
-Vamos a ver algunos paquetes que permiten hacer arboles de decisión en R.
+Vamos a ver algunos paquetes que permiten hacer árboles de decisión en R.
 
-#rpart
-rpart es una librería que hace arboles de decision a partir de datos.
-la función rpart crea, a partir de un conjunto de datos, y de una formula de prediciión, un arbol de decisión que puede usarse para predecir con la función `predict`
+## rpart
+rpart es una librería que hace arboles de decision a partir de datos. La función rpart crea, a partir de un conjunto de datos, y de una fórmula de predición, un árbol de decisión que puede usarse para predecir con la función `predict`
+
 ```{r}
 # building a simple rpart classification tree
 library(rpart)
-m <- rpart(outcome ~ loan_amount + credit_score, data = loans,
-             method = "class")
+loans<-read.csv("loans.csv", header = TRUE)
+head(loans)
+m <- rpart(outcome ~ loan_amount + credit_score, data = loans, method = "class")
+
 # making predictions from an rpart tree
 p <- predict(m, test_data, type = "class")
+
+locmodel <- rpart(location ~ daytype + hourtype, data = where9am, method = "class")
+weekend_afternoon<-data.frame(daytype="weekend",hourtype="afternoon")
+weekdy_morning<-data.frame(daytype="weekday",hourtype="morning")
+#plot(locmodel)
+predict(locmodel, weekend_afternoon)
+
+predict(locmodel, weekdy_morning) #, type = "class")
 ```
 
 ## crear un arbol de decisión simple
@@ -665,7 +626,7 @@ Utilizará un árbol de decisiones para tratar de aprender patrones en el result
 
 Luego, vea cómo las predicciones del árbol difieren para un solicitante con buen crédito versus uno con mal crédito.
 ```{r}
-loans<-read.csv("loans.csv",header = TRUE,strip.white=TRUE)
+loans<-read.csv("loans.csv",header = TRUE, strip.white=TRUE)
 # strip.white=TRUE sirve para hacer trim al leer y descartr los espacios en blanco de cad ini y fin de palabra
 head(loans)
 good_credit<-data.frame(   
